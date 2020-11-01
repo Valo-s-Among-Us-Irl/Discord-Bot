@@ -6,11 +6,14 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import tk.valoeghese.zoesteriaconfig.api.ZoesteriaConfig;
+import tk.valoeghese.zoesteriaconfig.api.container.Container;
 
 public class Session {
 	public Session(int taskCount, int impostors) {
@@ -94,9 +97,18 @@ public class Session {
 	
 	// static utils
 
+	@SuppressWarnings("unchecked")
 	private static void createRoles(List<Object> roles, List<String> cappedRoles, List<String> weightedRoles) {
 		for (Object o : roles) {
-			
+			Container data = ZoesteriaConfig.createWritableConfig((Map<String, Object>) o);
+
+			final int count = data.getIntegerValue("Entries");
+			final List<String> map = data.getBooleanValue("Capped") ? cappedRoles : weightedRoles;
+			final String name = data.getStringValue("Name");
+
+			for (int i = 0; i < count; ++i) {
+				map.add(name);
+			}
 		}
 	}
 

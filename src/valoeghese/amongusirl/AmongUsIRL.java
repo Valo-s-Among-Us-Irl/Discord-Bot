@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import tk.valoeghese.zoesteriaconfig.api.ZoesteriaConfig;
 import tk.valoeghese.zoesteriaconfig.api.container.WritableConfig;
 import tk.valoeghese.zoesteriaconfig.api.template.ConfigTemplate;
-import tk.valoeghese.zoesteriaconfig.impl.parser.ImplZoesteriaDefaultDeserialiser;
 
 public class AmongUsIRL extends ListenerAdapter {
 	@Override
@@ -70,7 +69,7 @@ public class AmongUsIRL extends ListenerAdapter {
 
 	// Booter
 	public static void main(String[] args) throws IOException {
-		// Load or Create config.
+		// Load, Update or Create config.
 		File file = new File("settings.zfg");
 		file.createNewFile();
 
@@ -89,7 +88,12 @@ public class AmongUsIRL extends ListenerAdapter {
 					impostor.putBooleanValue("Capped", false);
 					l.add(impostor.asMap());
 				})
+				.addContainer("Tasks", c -> c
+						.addDataEntry("Common", 1)
+						.addDataEntry("Long", 1)
+						.addDataEntry("Short", 1))
 				.build());
+
 		config.writeToFile(file);
 
 		// bootstrap JDA
