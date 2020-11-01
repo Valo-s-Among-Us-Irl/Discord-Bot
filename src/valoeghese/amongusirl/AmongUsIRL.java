@@ -69,26 +69,34 @@ public class AmongUsIRL extends ListenerAdapter {
 
 	// Booter
 	public static void main(String[] args) throws IOException {
-		// Load, Update, or Create config.
+		// Load or Create config.
 		File file = new File("settings.zfg");
-		file.createNewFile();
 
-		config = ZoesteriaConfig.loadConfigWithDefaults(file, ConfigTemplate.builder()
-				.addList("Impostor Roles", l -> {
-					WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
-					impostor.putStringValue("Name", "Impostor");
-					impostor.putIntegerValue("Entries", 1);
-					impostor.putBooleanValue("Capped", false);
-				})
-				.addList("Crewmate Roles", l -> {
-					WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
-					impostor.putStringValue("Name", "Crewmate");
-					impostor.putIntegerValue("Entries", 1);
-					impostor.putBooleanValue("Capped", false);
-				})
-				.build());
+		// Circumvent a likely parsing bug with unnamed objects in lists in ZoesteriaConfig 1.3.4
+		// I'll fix the bug in ZC later but for now I wanna get this bot done
+		if (file.exists()) {
+			config = ZoesteriaConfig.loadConfig(file);
+		} else {
+			file.createNewFile();
 
-		config.writeToFile(file);
+			config = ZoesteriaConfig.loadConfigWithDefaults(file, ConfigTemplate.builder()
+					.addList("ImpostorRoles", l -> {
+						WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
+						impostor.putStringValue("Name", "Impostor");
+						impostor.putIntegerValue("Entries", 1);
+						impostor.putBooleanValue("Capped", false);
+						l.add(impostor.asMap());
+					})
+					.addList("CrewmateRoles", l -> {
+						WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
+						impostor.putStringValue("Name", "Crewmate");
+						impostor.putIntegerValue("Entries", 1);
+						impostor.putBooleanValue("Capped", false);
+						l.add(impostor.asMap());
+					})
+					.build());
+			config.writeToFile(file);
+		}
 
 		// bootstrap JDA
 		try (FileInputStream fis = new FileInputStream(new File("./properties.txt"))) {

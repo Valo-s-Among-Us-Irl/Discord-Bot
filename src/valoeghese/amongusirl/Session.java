@@ -16,11 +16,19 @@ public class Session {
 	public Session(int taskCount, int impostors) {
 		this.taskCount = taskCount;
 		this.impostors = impostors;
+		
+		List<Object> iroles = AmongUsIRL.config.getList("ImpostorRoles");
+		createRoles(iroles, this.impostorCappedRoles, this.impostorWeightedRoles);
+
+		List<Object> croles = AmongUsIRL.config.getList("CrewmateRoles");
 	}
 
 	private List<User> users = new ArrayList<>();
 	private Object2BooleanMap<User> isImpostor = new Object2BooleanArrayMap<>();
-	private List<User> impostorCapRoles = new ArrayList<>();
+	private List<String> impostorCappedRoles = new ArrayList<>();
+	private List<String> impostorWeightedRoles = new ArrayList<>();
+	private List<String> crewWeightedRoles = new ArrayList<>();
+	private List<String> crewCappedRoles = new ArrayList<>();
 	private boolean started = false;
 	private int tasksComplete = 0;
 	private final int taskCount;
@@ -63,22 +71,6 @@ public class Session {
 
 	// Utils
 
-	private static int getIdCode(Task task) {
-		ZonedDateTime ima = Instant.now().atZone(ZoneOffset.UTC);
-		return random(0xFFFF, task.hash, ima.getHour(), ima.getDayOfMonth());
-	}
-
-	private static int random(int mask, int seed, int...modifiers) {
-		seed = 375462423 * seed + 672456235;
-
-		for (int mod : modifiers) {
-			seed += mod;
-			seed = 375462423 * seed + 672456235;
-		}
-
-		return seed & mask;
-	}
-
 	private MessageAction message(User user, String message) {
 		return user.openPrivateChannel().complete().sendMessage(message);
 	}
@@ -98,5 +90,29 @@ public class Session {
 				}
 			}
 		}
+	}
+	
+	// static utils
+
+	private static void createRoles(List<Object> roles, List<String> cappedRoles, List<String> weightedRoles) {
+		for (Object o : roles) {
+			
+		}
+	}
+
+	private static int getIdCode(Task task) {
+		ZonedDateTime ima = Instant.now().atZone(ZoneOffset.UTC);
+		return random(0xFFFF, task.hash, ima.getHour(), ima.getDayOfMonth());
+	}
+
+	private static int random(int mask, int seed, int...modifiers) {
+		seed = 375462423 * seed + 672456235;
+
+		for (int mod : modifiers) {
+			seed += mod;
+			seed = 375462423 * seed + 672456235;
+		}
+
+		return seed & mask;
 	}
 }
