@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import tk.valoeghese.zoesteriaconfig.api.ZoesteriaConfig;
 import tk.valoeghese.zoesteriaconfig.api.container.WritableConfig;
 import tk.valoeghese.zoesteriaconfig.api.template.ConfigTemplate;
+import tk.valoeghese.zoesteriaconfig.impl.parser.ImplZoesteriaDefaultDeserialiser;
 
 public class AmongUsIRL extends ListenerAdapter {
 	@Override
@@ -71,33 +72,33 @@ public class AmongUsIRL extends ListenerAdapter {
 	public static void main(String[] args) throws IOException {
 		// Load or Create config.
 		File file = new File("settings.zfg");
+		file.createNewFile();
 
-		// Circumvent a likely parsing bug with unnamed objects in lists in ZoesteriaConfig 1.3.4
-		// I'll fix the bug in ZC later but for now I wanna get this bot done
-		if (file.exists()) {
-			config = ZoesteriaConfig.loadConfig(file);
-		} else {
-			file.createNewFile();
+		config = ZoesteriaConfig.loadConfigWithDefaults(file, ConfigTemplate.builder()
+				.addList("ImpostorRoles", l -> {
+					WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
+					impostor.putStringValue("Name", "Impostor");
+					impostor.putIntegerValue("Entries", 1);
+					impostor.putBooleanValue("Capped", false);
+					l.add(impostor.asMap());
+				})
+				.addList("CrewmateRoles", l -> {
+					WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
+					impostor.putStringValue("Name", "Crewmate");
+					impostor.putIntegerValue("Entries", 1);
+					impostor.putBooleanValue("Capped", false);
+					l.add(impostor.asMap());
+				})
+				.build());
+		config.writeToFile(file);
 
-			config = ZoesteriaConfig.loadConfigWithDefaults(file, ConfigTemplate.builder()
-					.addList("ImpostorRoles", l -> {
-						WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
-						impostor.putStringValue("Name", "Impostor");
-						impostor.putIntegerValue("Entries", 1);
-						impostor.putBooleanValue("Capped", false);
-						l.add(impostor.asMap());
-					})
-					.addList("CrewmateRoles", l -> {
-						WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
-						impostor.putStringValue("Name", "Crewmate");
-						impostor.putIntegerValue("Entries", 1);
-						impostor.putBooleanValue("Capped", false);
-						l.add(impostor.asMap());
-					})
-					.build());
-			config.writeToFile(file);
+		for (Object object : config.getList("ImpostorRoles")) {
+			if (object instanceof ImplZoesteriaDefaultDeserialiser) {
+				System.out.println(config.getStringValue("ImpostorRoles.Name"));
+			}
+			System.out.println(object.getClass());
 		}
-
+		System.exit(0);
 		// bootstrap JDA
 		try (FileInputStream fis = new FileInputStream(new File("./properties.txt"))) {
 			Properties p = new Properties();

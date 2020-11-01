@@ -1,0 +1,18 @@
+ImpostorRoles = [
+  {
+    Name = Impostor;
+    Entries = 1;
+    Capped = false;
+  }
+]
+
+
+CrewmateRoles = [
+  {
+    Name = Crewmate;
+    Entries = 1;
+    Capped = false;
+  }
+]
+
+
