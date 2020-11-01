@@ -92,13 +92,6 @@ public class AmongUsIRL extends ListenerAdapter {
 				.build());
 		config.writeToFile(file);
 
-		for (Object object : config.getList("ImpostorRoles")) {
-			if (object instanceof ImplZoesteriaDefaultDeserialiser) {
-				System.out.println(config.getStringValue("ImpostorRoles.Name"));
-			}
-			System.out.println(object.getClass());
-		}
-		System.exit(0);
 		// bootstrap JDA
 		try (FileInputStream fis = new FileInputStream(new File("./properties.txt"))) {
 			Properties p = new Properties();
