@@ -1,6 +1,6 @@
 ImpostorRoles = [
   {
-    Name = Impostor;
+    Name = an Impostor;
     Entries = 1;
     Capped = false;
   }
@@ -9,10 +9,28 @@ ImpostorRoles = [
 
 CrewmateRoles = [
   {
-    Name = Crewmate;
+    Name = a Crewmate;
     Entries = 1;
     Capped = false;
   }
 ]
 
+
+EnabledRooms = [
+  Reactor;
+  O2;
+  Storage;
+  Hallway;
+  Electrical;
+  Admin;
+  Cafeteria;
+  Shields;
+]
+
+
+Tasks = {
+  Common = 1;
+  Long = 1;
+  Short = 1;
+}
 

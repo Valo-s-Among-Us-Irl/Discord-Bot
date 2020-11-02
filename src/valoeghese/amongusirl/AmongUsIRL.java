@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Properties;
+import java.util.Random;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -76,18 +77,32 @@ public class AmongUsIRL extends ListenerAdapter {
 		config = ZoesteriaConfig.loadConfigWithDefaults(file, ConfigTemplate.builder()
 				.addList("ImpostorRoles", l -> {
 					WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
-					impostor.putStringValue("Name", "Impostor");
+					impostor.putStringValue("Name", "an Impostor");
 					impostor.putIntegerValue("Entries", 1);
 					impostor.putBooleanValue("Capped", false);
 					l.add(impostor.asMap());
 				})
 				.addList("CrewmateRoles", l -> {
 					WritableConfig impostor = ZoesteriaConfig.createWritableConfig(new LinkedHashMap<>());
-					impostor.putStringValue("Name", "Crewmate");
+					impostor.putStringValue("Name", "a Crewmate");
 					impostor.putIntegerValue("Entries", 1);
 					impostor.putBooleanValue("Capped", false);
 					l.add(impostor.asMap());
 				})
+				.addList("EnabledRooms", l -> {
+					l.add(Room.REACTOR.name);
+					l.add(Room.O2.name);
+					l.add(Room.STORAGE.name);
+					l.add(Room.HALLWAY.name);
+					l.add(Room.ELECTRICAL.name);
+					l.add(Room.ADMIN.name);
+					l.add(Room.CAFETERIA.name);
+					l.add(Room.SHIELDS.name);
+				})
+				.addContainer("EnabledTasks", c -> c
+					.addList(Room.REACTOR.name, l -> {
+						l.add(Task.UNLOCK_MANIFOLDS.name);
+					}))
 				.addContainer("Tasks", c -> c
 						.addDataEntry("Common", 1)
 						.addDataEntry("Long", 1)
@@ -112,4 +127,5 @@ public class AmongUsIRL extends ListenerAdapter {
 	static String master;
 	static Session session = null;
 	static WritableConfig config;
+	static final Random RANDOM = new Random();
 }
