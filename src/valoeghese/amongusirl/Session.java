@@ -2,6 +2,8 @@ package valoeghese.amongusirl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -14,53 +16,101 @@ import tk.valoeghese.zoesteriaconfig.api.ZoesteriaConfig;
 import tk.valoeghese.zoesteriaconfig.api.container.Container;
 
 public class Session {
-	public Session(int taskCount, int impostors) {
-		this.taskCount = taskCount;
+	public Session(int impostors) {
+		// Set up task lists
+		List<Object> rooms = AmongUsIRL.config.getList("EnabledRooms");
+		Container enabledTasks = AmongUsIRL.config.getContainer("EnabledTasks");
+
+		for (Object o : rooms) {
+			String room = (String) o;
+			List<Object> tasksInRoom = enabledTasks.getList(room);
+
+			if (tasksInRoom != null) {
+				for (Object oo : tasksInRoom) {
+					Task task = Task.TASKS_BY_NAME.get((String) oo);
+
+					switch (task.type) {
+					case COMMON:
+						addTask(this.commonTaskIndex, this.commonTaskList, task, room);
+						break;
+					case LONG:
+						addTask(this.longTaskIndex, this.longTaskList, task, room);
+						break;
+					case SHORT:
+						addTask(this.shortTaskIndex, this.shortTaskList, task, room);
+						break;
+					}
+				}
+			}
+		}
+
 		this.impostors = impostors;
-		
+
+		// Make Sub Roles
 		List<Object> iroles = AmongUsIRL.config.getList("ImpostorRoles");
 		createRoles(iroles, this.impostorCappedRoles, this.impostorWeightedRoles);
-		this.impostorWeighted = this.impostorWeightedRoles.size() == 1 ?
+		this.impostorWeighted = (this.impostorWeightedRoles.size() == 1 ?
 				() -> this.impostorWeightedRoles.get(0) :
-				() -> this.impostorWeightedRoles.get(AmongUsIRL.RANDOM.nextInt(this.impostorWeightedRoles.size()));
+					() -> this.impostorWeightedRoles.get(AmongUsIRL.RANDOM.nextInt(this.impostorWeightedRoles.size()))
+				);
 
 		List<Object> croles = AmongUsIRL.config.getList("CrewmateRoles");
 		createRoles(croles, this.crewCappedRoles, this.crewWeightedRoles);
-		
-		this.crewWeighted = this.crewWeightedRoles.size() == 1 ?
+
+		this.crewWeighted = (this.crewWeightedRoles.size() == 1 ?
 				() -> this.crewWeightedRoles.get(0) :
-				() -> this.crewWeightedRoles.get(AmongUsIRL.RANDOM.nextInt(this.crewWeightedRoles.size()));
+					() -> this.crewWeightedRoles.get(AmongUsIRL.RANDOM.nextInt(this.crewWeightedRoles.size()))
+				);
 	}
+
+	private final Map<Task, List<ConfiguredTask>> commonTaskIndex = new HashMap<>();
+	private final List<Task> commonTaskList = new ArrayList<>();
+	private final Map<Task, List<ConfiguredTask>> longTaskIndex = new HashMap<>();
+	private final List<Task> longTaskList = new ArrayList<>();
+	private final Map<Task, List<ConfiguredTask>> shortTaskIndex = new HashMap<>();
+	private final List<Task> shortTaskList = new ArrayList<>();
 
 	private List<User> users = new ArrayList<>();
 	private Object2BooleanMap<User> isImpostor = new Object2BooleanArrayMap<>();
+	private Map<User, List<ConfiguredTask>> tasks = new LinkedHashMap<>();
+
 	private final List<String> impostorCappedRoles = new ArrayList<>();
 	private final List<String> impostorWeightedRoles = new ArrayList<>();
 	private final Supplier<String> impostorWeighted;
 	private final List<String> crewWeightedRoles = new ArrayList<>();
 	private final List<String> crewCappedRoles = new ArrayList<>();
 	private final Supplier<String> crewWeighted;
+
 	private boolean started = false;
 	private int tasksComplete = 0;
-	private final int taskCount;
+	private int taskCount = 0;
 	private final int impostors;
 
 	// Interface
 
 	public void start() {
 		this.started = true;
+
+		// Shuffle users for random impostors
 		Collections.shuffle(this.users);
 
 		for (int i = 0; i < this.impostors; ++i) {
 			this.isImpostor.put(this.users.get(i), true);
 		}
 
+		// Shuffle users for random sub roles
 		Collections.shuffle(this.users);
 
+		final int commonTasks = AmongUsIRL.config.getIntegerValue("Tasks.Common");
+		final int longTasks = AmongUsIRL.config.getIntegerValue("Tasks.Long");
+		final int shortTasks = AmongUsIRL.config.getIntegerValue("Tasks.Short");
+
+		// Give sub roles and delegate tasks
 		for (User user : this.users) {
 			String role = "missingno";
+			boolean impostor = this.isImpostor.getBoolean(user);
 
-			if (this.isImpostor.getBoolean(user)) {
+			if (impostor) {
 				if (!this.impostorCappedRoles.isEmpty()) {
 					role = this.impostorCappedRoles.remove(0);
 				} else {
@@ -73,8 +123,42 @@ public class Session {
 					role = this.crewWeighted.get();
 				}
 			}
-			
+
 			this.message(user, "You are " + role).queue();
+
+			List<ConfiguredTask> userTasks = new ArrayList<>();
+
+			this.delegateTasks(userTasks, commonTasks, this.commonTaskIndex, this.commonTaskList);
+			this.delegateTasks(userTasks, longTasks, this.longTaskIndex, this.longTaskList);
+			this.delegateTasks(userTasks, shortTasks, this.shortTaskIndex, this.shortTaskList);
+
+			this.tasks.put(user, userTasks);
+
+			StringBuilder sb = new StringBuilder();
+
+			for (ConfiguredTask t : userTasks) {
+				sb.append('\n').append(t.toString());
+			}
+
+			if (impostor) {
+				this.message(user, "Fake Tasks:" + sb.toString()).queue();
+			} else {
+				this.message(user, "Tasks:" + sb.toString()).queue();
+				this.taskCount += (commonTasks + longTasks + shortTasks);
+			}
+		}
+	}
+
+	private void delegateTasks(List<ConfiguredTask> userTasks, int tasks, Map<Task, List<ConfiguredTask>> index, List<Task> list) {
+		if (tasks > 0) {
+			Collections.shuffle(list);
+
+			// delegate tasks or fake tasks
+			for (int i = 0; i < tasks; ++i) {
+				Task task = list.get(i);
+				List<ConfiguredTask> variants = index.get(task);
+				userTasks.add(variants.get(AmongUsIRL.RANDOM.nextInt(variants.size())));
+			}
 		}
 	}
 
@@ -120,7 +204,7 @@ public class Session {
 			}
 		}
 	}
-	
+
 	// static utils
 
 	@SuppressWarnings("unchecked")
@@ -139,5 +223,14 @@ public class Session {
 
 		// for edge case scenarios where not all are used
 		Collections.shuffle(cappedRoles);
+	}
+
+	private static void addTask(Map<Task, List<ConfiguredTask>> map, List<Task> list, Task task, String room) {
+		ConfiguredTask ct = new ConfiguredTask(task, Room.ROOM_BY_NAME.get(room));
+		map.computeIfAbsent(task, l -> new ArrayList<>()).add(ct);
+
+		if (!list.contains(task)) {
+			list.add(task);
+		}
 	}
 }

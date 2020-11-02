@@ -19,7 +19,6 @@ import tk.valoeghese.zoesteriaconfig.api.template.ConfigTemplate;
 public class AmongUsIRL extends ListenerAdapter {
 	@Override
 	public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
-		System.out.println("e");
 	}
 
 	@Override
@@ -41,16 +40,16 @@ public class AmongUsIRL extends ListenerAdapter {
 					switch(content[0]) {
 					case "a.new":
 						sessionMsg = null;
-						session = new Session(Math.max(1, Integer.parseInt(content[1])), Math.max(1, Integer.parseInt(content[2])));
+						session = new Session(Math.max(1, Integer.parseInt(content[1])));
 						sessionMsg = event.getChannel().sendMessage("Started new session! React with :mag_right: to join.").complete().getId();
 						break;
 					case "a.start":
 						if (session == null) {
-							event.getChannel().sendMessage("Session not yet created!");
+							event.getChannel().sendMessage("Session not yet created!").queue();
 						} else if (session.hasStarted()) {
-							event.getChannel().sendMessage("Session has already started!");
+							event.getChannel().sendMessage("Session has already started!").queue();
 						} else {
-							event.getChannel().sendMessage("Started session!");
+							event.getChannel().sendMessage("Started session!").queue();
 							session.start();
 						}
 						break;
@@ -59,7 +58,7 @@ public class AmongUsIRL extends ListenerAdapter {
 					}
 				}
 			} catch (ArrayIndexOutOfBoundsException e) {
-				event.getChannel().sendMessage("Syntax: `a.new <taskCount> <impostors>`").queue();
+				event.getChannel().sendMessage("Syntax: `a.new <impostors>`").queue();
 			} catch (NumberFormatException e) {
 				event.getChannel().sendMessage(e.getLocalizedMessage()).queue();
 			} catch (Exception e) {
@@ -100,13 +99,40 @@ public class AmongUsIRL extends ListenerAdapter {
 					l.add(Room.SHIELDS.name);
 				})
 				.addContainer("EnabledTasks", c -> c
-					.addList(Room.REACTOR.name, l -> {
-						l.add(Task.UNLOCK_MANIFOLDS.name);
-					}))
+						.addList(Room.REACTOR.name, l -> {
+							l.add(Task.UNLOCK_MANIFOLDS.name);
+							l.add(Task.TRANSFER_DATA.name);					
+						})
+						.addList(Room.O2.name, l -> {
+							l.add(Task.TRANSFER_DATA.name);
+							l.add(Task.EMPTY_GARBAGE.name);
+						})
+						.addList(Room.STORAGE.name, l -> {
+							l.add(Task.TRANSFER_DATA.name);
+							l.add(Task.FUEL_ENGINES.name);
+							l.add(Task.EMPTY_GARBAGE.name);
+						})
+						.addList(Room.HALLWAY.name, l -> {
+							l.add(Task.TRANSFER_DATA.name);
+						})
+						.addList(Room.ELECTRICAL.name, l -> {
+							l.add(Task.TRANSFER_DATA.name);
+							l.add(Task.REBOOT_WIFI.name);
+						})
+						.addList(Room.ADMIN.name, l -> {
+							l.add(Task.ENTER_ID_CODE.name);
+						})
+						.addList(Room.CAFETERIA.name, l -> {
+							l.add(Task.EMPTY_GARBAGE.name);
+						})
+						.addList(Room.SHIELDS.name, l -> {
+							l.add(Task.TRANSFER_DATA.name);
+						}))
 				.addContainer("Tasks", c -> c
 						.addDataEntry("Common", 1)
 						.addDataEntry("Long", 1)
-						.addDataEntry("Short", 1))
+						.addDataEntry("Short", 2))
+				.addDataEntry("UploadRoom", Room.ADMIN.name)
 				.build());
 
 		config.writeToFile(file);

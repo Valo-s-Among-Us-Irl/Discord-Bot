@@ -1,12 +1,18 @@
 package valoeghese.amongusirl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 public class Room {
 	private Room(String name, String displayName, int id) {
 		this.name = name;
+		ROOM_BY_NAME.put(name, this);
+
 		this.displayName = displayName;
+
 		this.id = id;
 		ROOMS.put(id, this);
 	}
@@ -15,6 +21,12 @@ public class Room {
 	final String displayName;
 	final int id;
 
+	@Override
+	public String toString() {
+		return this.displayName;
+	}
+
+	public static Map<String, Room> ROOM_BY_NAME = new HashMap<>();
 	public static final Int2ObjectMap<Room> ROOMS = new Int2ObjectArrayMap<>();
 
 	public static final Room REACTOR = new Room("reactor", "Reactor", 0);

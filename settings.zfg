@@ -17,20 +17,54 @@ CrewmateRoles = [
 
 
 EnabledRooms = [
-  Reactor;
-  O2;
-  Storage;
-  Hallway;
-  Electrical;
-  Admin;
-  Cafeteria;
-  Shields;
+  reactor;
+  o2;
+  storage;
+  hallway;
+  electrical;
+  admin;
+  cafeteria;
+  shields;
 ]
 
+
+EnabledTasks = {
+  reactor = [
+    unlock_manifolds;
+    transfer_data;
+  ]
+  o2 = [
+    transfer_data;
+    empty_garbage;
+  ]
+  storage = [
+    transfer_data;
+    fuel_engines;
+    empty_garbage;
+  ]
+  hallway = [
+    transfer_data;
+  ]
+  electrical = [
+    transfer_data;
+    reboot_wifi;
+  ]
+  admin = [
+    id_code;
+  ]
+  cafeteria = [
+    empty_garbage;
+  ]
+  shields = [
+    transfer_data;
+  ]
+}
 
 Tasks = {
   Common = 1;
   Long = 1;
-  Short = 1;
+  Short = 2;
 }
+
+UploadRoom = admin;
 
