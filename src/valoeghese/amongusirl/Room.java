@@ -37,4 +37,5 @@ public class Room {
 	public static final Room ADMIN = new Room("admin", "Admin", 5);
 	public static final Room CAFETERIA = new Room("cafeteria", "Cafeteria", 6);
 	public static final Room SHIELDS = new Room("shields", "Shields", 7);
+	public static final Room OUTSIDE = new Room("outside", "Outside", 8);
 }
