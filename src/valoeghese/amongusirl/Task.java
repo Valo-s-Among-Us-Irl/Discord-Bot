@@ -51,6 +51,8 @@ public class Task {
 	public static final Task EMPTY_GARBAGE = new Task("empty_garbage", "Empty Garbage", 5, 2, Type.SHORT);
 	public static final Task O2_1 = new Task("o2_1", "Fix Oxygen: 1", 6, 1, Type.EMERGENCY);
 	public static final Task O2_2 = new Task("o2_2", "Fix Oxygen: 2", 7, 1, Type.EMERGENCY);
+	// second half of reboot wifi
+	public static final Task REBOOT_WIFI_2 = new Task("reboot_wifi_2", "Reboot Wifi", 8, 2, Type.LONG);
 
 	public static enum Type {
 		SHORT,

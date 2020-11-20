@@ -68,3 +68,9 @@ Tasks = {
 
 UploadRoom = admin;
 
+EngineRoom1 = outside;
+
+EngineRoom2 = outside;
+
+GarbageRoom = storage;
+

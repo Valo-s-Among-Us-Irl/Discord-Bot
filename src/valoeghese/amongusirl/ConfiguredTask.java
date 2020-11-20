@@ -14,7 +14,7 @@ public class ConfiguredTask {
 
 	@Override
 	public String toString() {
-		return this.room.toString() + ": " + this.task.toString();
+		return this.room.toString() + ": " + (((this.task == Task.TRANSFER_DATA) && (this.room == AmongUsIRL.uploadRoom)) ? "Upload Data" : this.task.toString());
 	}
 
 	@Override

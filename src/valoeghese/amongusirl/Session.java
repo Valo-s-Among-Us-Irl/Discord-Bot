@@ -95,6 +95,10 @@ public class Session {
 	public void start() {
 		this.started = true;
 
+		if (this.users.isEmpty()) {
+			return;
+		}
+
 		// Shuffle users for random impostors
 		Collections.shuffle(this.users);
 
@@ -172,13 +176,25 @@ public class Session {
 		} else {
 			try {
 				int code = Integer.parseInt(message);
-				ConfiguredTask t = new ConfiguredTask(Util.getTask(code), Util.getRoom(code));
-				
+				final ConfiguredTask tsk = new ConfiguredTask(Util.getTask(code), Util.getRoom(code));
+
+				if (tsk.task == null) {
+					return "Invalid task encoded in given code.";
+				}
+
+				//System.out.println(tsk); // DEBUG
+				if (tsk.room == null) {
+					return "Invalid room encoded in given code.";
+				}
+
 				// check validity of code
-				int[] shouldCodes = Util.getIdCodes(t.task, t.room);
+				int[] shouldCodes = Util.getIdCodes(tsk.task, tsk.room);
 				if (!(shouldCodes[0] == code || shouldCodes[1] == code)) {
 					return "Outdated code!";
 				}
+
+				// reboot wifi 2 treated as reboot wifi outside of code
+				ConfiguredTask t = new ConfiguredTask(tsk.task == Task.REBOOT_WIFI_2 ? Task.REBOOT_WIFI : tsk.task, tsk.room);
 
 				AtomicReference<ConfiguredTask> t1 = new AtomicReference<>();
 
@@ -190,15 +206,48 @@ public class Session {
 					}
 					return false;
 				})) {
-					t = t1.get(); // replace general instance with specific instance
-					
-					if (++t.part == t.task.stages) {
+					ConfiguredTask ct = t1.get(); // use specific instance
+
+					if (++ct.part == ct.task.stages) {
 						tasks.get(user).remove(t);
-						return "Completed task!";
-					} else {
-						if (t.task == Task.TRANSFER_DATA) {
-							t.room = AmongUsIRL.uploadRoom;
+
+						StringBuilder sb = new StringBuilder("Completed Task! Remaining Tasks:");
+
+						List<ConfiguredTask> userTasks = this.tasks.get(user);
+
+						for (ConfiguredTask usertask : userTasks) {
+							sb.append('\n').append(usertask.toString());
 						}
+
+						return sb.toString();
+					} else {
+						if (ct.task == Task.TRANSFER_DATA) {
+							ct.room = AmongUsIRL.uploadRoom;
+						} else if (ct.task == Task.FUEL_ENGINES) {
+							switch (ct.part) {
+							case 1:
+								ct.room = AmongUsIRL.engineRoom1;
+								break;
+							case 2:
+								ct.room = ct.origin;
+								break;
+							case 3:
+								ct.room = AmongUsIRL.engineRoom2;
+								break;
+							}
+						} else if (ct.task == Task.EMPTY_GARBAGE) {
+							ct.room = AmongUsIRL.garbageRoom;
+						}
+
+						StringBuilder sb = new StringBuilder("Completed Part " + ct.part + "/" + ct.task.stages + "! Remaining Tasks:");
+
+						List<ConfiguredTask> userTasks = this.tasks.get(user);
+
+						for (ConfiguredTask usertask : userTasks) {
+							sb.append('\n').append(usertask.toString());
+						}
+
+						return sb.toString();
 					}
 				}
 
