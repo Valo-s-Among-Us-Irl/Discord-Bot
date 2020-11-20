@@ -46,10 +46,13 @@ public class Task {
 	public static final Task FUEL_ENGINES = new Task("fuel_engines", "Fuel Engines", 3, Type.LONG);
 	public static final Task ENTER_ID_CODE = new Task("id_code", "Enter ID Code", 4, Type.COMMON);
 	public static final Task EMPTY_GARBAGE = new Task("empty_garbage", "Empty Garbage", 5, Type.SHORT);
+	public static final Task O2_1 = new Task("o2_1", "Fix Oxygen: 1", 6, Type.EMERGENCY);
+	public static final Task O2_2 = new Task("o2_2", "Fix Oxygen: 2", 7, Type.EMERGENCY);
 
 	public static enum Type {
 		SHORT,
 		LONG,
-		COMMON
+		COMMON,
+		EMERGENCY
 	}
 }

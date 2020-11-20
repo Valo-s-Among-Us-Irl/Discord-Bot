@@ -28,4 +28,8 @@ public final class Util {
 	public static Task getTask(int code) {
 		return Task.TASKS.get(0b111111 & code);
 	}
+
+	public static Room getRoom(int code) {
+		return Room.ROOMS.get((code >> 6) & 0b111);
+	}
 }
