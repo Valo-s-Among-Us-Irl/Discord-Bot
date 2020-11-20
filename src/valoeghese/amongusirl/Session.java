@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
@@ -38,6 +39,9 @@ public class Session {
 						break;
 					case SHORT:
 						addTask(this.shortTaskIndex, this.shortTaskList, task, room);
+						break;
+					case EMERGENCY:
+						// not a normal task
 						break;
 					}
 				}
@@ -162,6 +166,49 @@ public class Session {
 		}
 	}
 
+	public String acceptMessage(User user, String message) {
+		if (!isImpostor.getBoolean(user)) {
+			return null;
+		} else {
+			try {
+				int code = Integer.parseInt(message);
+				ConfiguredTask t = new ConfiguredTask(Util.getTask(code), Util.getRoom(code));
+				
+				// check validity of code
+				int[] shouldCodes = Util.getIdCodes(t.task, t.room);
+				if (!(shouldCodes[0] == code || shouldCodes[1] == code)) {
+					return "Outdated code!";
+				}
+
+				AtomicReference<ConfiguredTask> t1 = new AtomicReference<>();
+
+				// see if the user actually has the task
+				if (tasks.get(user).stream().anyMatch(task -> {
+					if (task.equals(t)) {
+						t1.set(task); // set specific instance
+						return true;
+					}
+					return false;
+				})) {
+					t = t1.get(); // replace general instance with specific instance
+					
+					if (++t.part == t.task.stages) {
+						tasks.get(user).remove(t);
+						return "Completed task!";
+					} else {
+						if (t.task == Task.TRANSFER_DATA) {
+							t.room = AmongUsIRL.uploadRoom;
+						}
+					}
+				}
+
+				return "You do not have this task, silly!";
+			} catch (NumberFormatException e) {
+				return null;
+			}
+		}
+	}
+
 	public boolean joinUser(User user) {
 		if (this.started) {
 			return false;
@@ -175,6 +222,10 @@ public class Session {
 
 	public boolean hasStarted() {
 		return this.started;
+	}
+
+	public boolean hasUser(User user) {
+		return this.users.contains(user);
 	}
 
 	// Get task progress as percentage

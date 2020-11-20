@@ -8,6 +8,7 @@ import java.util.Properties;
 import java.util.Random;
 
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -19,6 +20,17 @@ import tk.valoeghese.zoesteriaconfig.api.template.ConfigTemplate;
 public class AmongUsIRL extends ListenerAdapter {
 	@Override
 	public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
+		User author = event.getAuthor();
+
+		if (session != null) {
+			if (session.hasUser(author) && session.hasStarted()) {
+				String result = session.acceptMessage(author, event.getMessage().getContentRaw());
+
+				if (result != null) {
+					event.getChannel().sendMessage(result).queue();
+				}
+			}
+		}
 	}
 
 	@Override
@@ -110,7 +122,6 @@ public class AmongUsIRL extends ListenerAdapter {
 						.addList(Room.STORAGE.name, l -> {
 							l.add(Task.TRANSFER_DATA.name);
 							l.add(Task.FUEL_ENGINES.name);
-							l.add(Task.EMPTY_GARBAGE.name);
 						})
 						.addList(Room.HALLWAY.name, l -> {
 							l.add(Task.TRANSFER_DATA.name);
@@ -133,9 +144,17 @@ public class AmongUsIRL extends ListenerAdapter {
 						.addDataEntry("Long", 1)
 						.addDataEntry("Short", 2))
 				.addDataEntry("UploadRoom", Room.ADMIN.name)
+				.addDataEntry("EngineRoom1", Room.OUTSIDE.name)
+				.addDataEntry("EngineRoom2", Room.OUTSIDE.name)
+				.addDataEntry("GarbageRoom", Room.STORAGE.name)
 				.build());
 
 		config.writeToFile(file);
+
+		uploadRoom = Room.ROOM_BY_NAME.get(config.getStringValue("UploadRoom"));
+		engineRoom1 = Room.ROOM_BY_NAME.get(config.getStringValue("EngineRoom1"));
+		engineRoom2 = Room.ROOM_BY_NAME.get(config.getStringValue("EngineRoom2"));
+		garbageRoom = Room.ROOM_BY_NAME.get(config.getStringValue("EngineRoom2"));
 
 		// bootstrap JDA
 		try (FileInputStream fis = new FileInputStream(new File("./properties.txt"))) {
@@ -152,6 +171,7 @@ public class AmongUsIRL extends ListenerAdapter {
 	static String sessionMsg = null;
 	static String master;
 	static Session session = null;
+	static Room uploadRoom, engineRoom1, engineRoom2, garbageRoom;
 	static WritableConfig config;
 	static final Random RANDOM = new Random();
 }

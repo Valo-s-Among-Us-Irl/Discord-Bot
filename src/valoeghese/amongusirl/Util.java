@@ -14,6 +14,19 @@ public final class Util {
 		return ((shiftedTimeKey | room.id) << 6) | (0b111111 & task.id);
 	}
 
+	public static int[] getIdCodes(Task task, Room room) {
+		ZonedDateTime ima = Instant.now().atZone(ZoneOffset.UTC);
+		ZonedDateTime prev = ima.minusMinutes(2);
+
+		int shiftedTimeKey0 = random(0x3FF, task.hash, ima.getHour(), ima.getDayOfMonth(), ima.getMinute() / 2) << 3;
+		int r0 = ((shiftedTimeKey0 | room.id) << 6) | (0b111111 & task.id);
+
+		int shiftedTimeKey1 = random(0x3FF, task.hash, prev.getHour(), prev.getDayOfMonth(), prev.getMinute() / 2) << 3;
+		int r1 = ((shiftedTimeKey1 | room.id) << 6) | (0b111111 & task.id);
+
+		return new int[] {r0, r1};
+	}
+
 	public static int random(int mask, int seed, int...modifiers) {
 		seed = 375462423 * seed + 672456235;
 
