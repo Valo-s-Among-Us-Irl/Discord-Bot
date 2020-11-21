@@ -209,7 +209,21 @@ public class Session {
 					ConfiguredTask ct = t1.get(); // use specific instance
 
 					if (++ct.part == ct.task.stages) {
+						long now = System.currentTimeMillis();
+
+						if (now < ct.target) {
+							return "This task is not ready to be performed! Remaining time: " + (int) Math.floor(ct.target - now) + " seconds.";
+						}
+
+						if (ct.task == Task.REBOOT_WIFI) {
+							if (tsk.task != Task.REBOOT_WIFI_2) {
+								return "You must reactivate the wifi, not turn it off again, silly!";
+							}
+						}
+
 						tasks.get(user).remove(t);
+						this.tasksComplete++;
+						// TODO win condition: tasks
 
 						StringBuilder sb = new StringBuilder("Completed Task! Remaining Tasks:");
 
@@ -237,6 +251,8 @@ public class Session {
 							}
 						} else if (ct.task == Task.EMPTY_GARBAGE) {
 							ct.room = AmongUsIRL.garbageRoom;
+						} else if (ct.task == Task.REBOOT_WIFI) {
+							ct.target = System.currentTimeMillis() + 1000 * 60; // 60 seconds
 						}
 
 						StringBuilder sb = new StringBuilder("Completed Part " + ct.part + "/" + ct.task.stages + "! Remaining Tasks:");

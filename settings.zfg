@@ -50,7 +50,7 @@ EnabledTasks = {
     reboot_wifi;
   ]
   admin = [
-    id_code;
+    swipe_card;
   ]
   cafeteria = [
     empty_garbage;

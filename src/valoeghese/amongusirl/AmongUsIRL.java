@@ -131,7 +131,7 @@ public class AmongUsIRL extends ListenerAdapter {
 							l.add(Task.REBOOT_WIFI.name);
 						})
 						.addList(Room.ADMIN.name, l -> {
-							l.add(Task.ENTER_ID_CODE.name);
+							l.add(Task.SWIPE_CARD.name);
 						})
 						.addList(Room.CAFETERIA.name, l -> {
 							l.add(Task.EMPTY_GARBAGE.name);

@@ -11,6 +11,7 @@ public class ConfiguredTask {
 	final Room origin;
 	Room room; // can change
 	int part = 0; // what part of the task you are in
+	long target = 0;
 
 	@Override
 	public String toString() {

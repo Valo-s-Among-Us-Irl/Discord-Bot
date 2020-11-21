@@ -47,7 +47,7 @@ public class Task {
 	public static final Task TRANSFER_DATA = new Task("transfer_data", "Download Data", 1, 2, Type.SHORT); // also [UploadRoom]:Upload Data
 	public static final Task REBOOT_WIFI = new Task("reboot_wifi", "Reboot Wifi", 2, 2, Type.LONG);
 	public static final Task FUEL_ENGINES = new Task("fuel_engines", "Fuel Engines", 3, 4, Type.LONG);
-	public static final Task ENTER_ID_CODE = new Task("id_code", "Enter ID Code", 4, 1, Type.COMMON);
+	public static final Task SWIPE_CARD = new Task("swipe_card", "Swipe Card", 4, 1, Type.COMMON);
 	public static final Task EMPTY_GARBAGE = new Task("empty_garbage", "Empty Garbage", 5, 2, Type.SHORT);
 	public static final Task O2_1 = new Task("o2_1", "Fix Oxygen: 1", 6, 1, Type.EMERGENCY);
 	public static final Task O2_2 = new Task("o2_2", "Fix Oxygen: 2", 7, 1, Type.EMERGENCY);
