@@ -13,7 +13,7 @@ public final class Util {
 
 	public static int getIdCode(Task task, Room room) {
 		ZonedDateTime ima = Instant.now().atZone(ZoneOffset.UTC);
-		int shiftedTimeKey = random(0x3FF, task.hash, ima.getHour(), ima.getDayOfMonth(), ima.getMinute() / 2) << 3;
+		int shiftedTimeKey = random(0x3FF, task.hash, ima.getHour(), ima.getDayOfMonth(), ima.getMinute() / 2) << 4;
 		return ((shiftedTimeKey | room.id) << 6) | (0b111111 & task.id);
 	}
 
@@ -21,10 +21,10 @@ public final class Util {
 		ZonedDateTime ima = Instant.now().atZone(ZoneOffset.UTC);
 		ZonedDateTime prev = ima.minusMinutes(2);
 
-		int shiftedTimeKey0 = random(0x3FF, task.hash, ima.getHour(), ima.getDayOfMonth(), ima.getMinute() / 2) << 3;
+		int shiftedTimeKey0 = random(0x3FF, task.hash, ima.getHour(), ima.getDayOfMonth(), ima.getMinute() / 2) << 4;
 		int r0 = ((shiftedTimeKey0 | room.id) << 6) | (0b111111 & task.id);
 
-		int shiftedTimeKey1 = random(0x3FF, task.hash, prev.getHour(), prev.getDayOfMonth(), prev.getMinute() / 2) << 3;
+		int shiftedTimeKey1 = random(0x3FF, task.hash, prev.getHour(), prev.getDayOfMonth(), prev.getMinute() / 2) << 4;
 		int r1 = ((shiftedTimeKey1 | room.id) << 6) | (0b111111 & task.id);
 
 		return new int[] {r0, r1};
@@ -46,6 +46,6 @@ public final class Util {
 	}
 
 	public static Room getRoom(int code) {
-		return Room.ROOMS.get((code >> 6) & 0b111);
+		return Room.ROOMS.get((code >> 6) & 0b1111);
 	}
 }
