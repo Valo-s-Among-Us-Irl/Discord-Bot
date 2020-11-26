@@ -1,5 +1,7 @@
 package valoeghese.amongusirl;
 
+import valoeghese.amongusirl.util.Util;
+
 class TestIDFunc {
 	public static void main(String[] args) {
 		int i = Util.getIdCode(Task.TRANSFER_DATA, Room.ELECTRICAL);

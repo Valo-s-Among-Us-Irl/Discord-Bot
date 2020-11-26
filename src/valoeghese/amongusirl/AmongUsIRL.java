@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -16,6 +17,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import tk.valoeghese.zoesteriaconfig.api.ZoesteriaConfig;
 import tk.valoeghese.zoesteriaconfig.api.container.WritableConfig;
 import tk.valoeghese.zoesteriaconfig.api.template.ConfigTemplate;
+import valoeghese.amongusirl.util.DelayedTask;
+import valoeghese.amongusirl.util.OrderedList;
 
 public class AmongUsIRL extends ListenerAdapter {
 	@Override
@@ -156,6 +159,31 @@ public class AmongUsIRL extends ListenerAdapter {
 		engineRoom2 = Room.ROOM_BY_NAME.get(config.getStringValue("EngineRoom2"));
 		garbageRoom = Room.ROOM_BY_NAME.get(config.getStringValue("EngineRoom2"));
 
+		delayedTaskWorker = new Thread(() -> {
+			long nextExec = System.currentTimeMillis() + 500;
+			long thisExec = 0;
+
+			while (true) {
+				while (thisExec < nextExec) { // yeah I know I can do a one-liner with blank body but that's messy
+					thisExec = System.currentTimeMillis();
+				}
+
+				nextExec = thisExec + 500;
+				
+				synchronized (delayedTasks) {
+					for (DelayedTask task : delayedTasks) {
+						if (task.target > thisExec) { // this works because tasks are ordered by their target time to execute
+							break; // therefore if the target is greater than thisExec, it applies to all subsequent tasks.
+						}
+
+						task.runnable.run();
+					}
+				}
+			}
+		});
+
+		delayedTaskWorker.setDaemon(true);
+
 		// bootstrap JDA
 		try (FileInputStream fis = new FileInputStream(new File("./properties.txt"))) {
 			Properties p = new Properties();
@@ -168,6 +196,8 @@ public class AmongUsIRL extends ListenerAdapter {
 		}
 	}
 
+	static Thread delayedTaskWorker;
+	static List<DelayedTask> delayedTasks = new OrderedList<>(dTask -> dTask.target);
 	static String sessionMsg = null;
 	static String master;
 	static Session session = null;

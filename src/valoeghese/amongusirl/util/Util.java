@@ -1,8 +1,11 @@
-package valoeghese.amongusirl;
+package valoeghese.amongusirl.util;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+
+import valoeghese.amongusirl.Room;
+import valoeghese.amongusirl.Task;
 
 public final class Util {
 	private Util() {

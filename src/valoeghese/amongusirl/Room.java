@@ -19,7 +19,7 @@ public class Room {
 
 	final String name;
 	final String displayName;
-	final int id;
+	public final int id;
 
 	@Override
 	public String toString() {

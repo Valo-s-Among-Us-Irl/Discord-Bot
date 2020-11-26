@@ -29,8 +29,8 @@ public class Task {
 
 	final String name;
 	final String displayName;
-	final int hash;
-	final int id;
+	public final int hash;
+	public final int id;
 	final int stages;
 	final Type type;
 

@@ -15,6 +15,8 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import tk.valoeghese.zoesteriaconfig.api.ZoesteriaConfig;
 import tk.valoeghese.zoesteriaconfig.api.container.Container;
+import valoeghese.amongusirl.util.DelayedTask;
+import valoeghese.amongusirl.util.Util;
 
 public class Session {
 	public Session(int impostors) {
@@ -113,6 +115,10 @@ public class Session {
 		final int longTasks = AmongUsIRL.config.getIntegerValue("Tasks.Long");
 		final int shortTasks = AmongUsIRL.config.getIntegerValue("Tasks.Short");
 
+		List<ConfiguredTask> commonDistributedTasks = new ArrayList<>();
+		// common tasks are distributed commonly
+		this.delegateTasks(commonDistributedTasks, commonTasks, this.commonTaskIndex, this.commonTaskList);
+
 		// Give sub roles and delegate tasks
 		for (User user : this.users) {
 			String role = "missingno";
@@ -136,7 +142,10 @@ public class Session {
 
 			List<ConfiguredTask> userTasks = new ArrayList<>();
 
-			this.delegateTasks(userTasks, commonTasks, this.commonTaskIndex, this.commonTaskList);
+			for (ConfiguredTask task : commonDistributedTasks) {
+				userTasks.add(task);
+			}
+
 			this.delegateTasks(userTasks, longTasks, this.longTaskIndex, this.longTaskList);
 			this.delegateTasks(userTasks, shortTasks, this.shortTaskIndex, this.shortTaskList);
 
@@ -253,6 +262,16 @@ public class Session {
 							ct.room = AmongUsIRL.garbageRoom;
 						} else if (ct.task == Task.REBOOT_WIFI) {
 							ct.target = System.currentTimeMillis() + 1000 * 60; // 60 seconds
+
+							DelayedTask reMessage = new DelayedTask(ct.target, () -> {
+								if (AmongUsIRL.session == this) { // check session still working
+									message(user, "The WiFi is ready to be turned on!");
+								}
+							});
+
+							synchronized (AmongUsIRL.delayedTasks) {
+								AmongUsIRL.delayedTasks.add(reMessage);
+							}
 						}
 
 						StringBuilder sb = new StringBuilder("Completed Part " + ct.part + "/" + ct.task.stages + "! Remaining Tasks:");
