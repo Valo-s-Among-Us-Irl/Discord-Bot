@@ -180,7 +180,7 @@ public class Session {
 	}
 
 	public String acceptMessage(User user, String message) {
-		if (!isImpostor.getBoolean(user)) {
+		if (isImpostor.getBoolean(user)) {
 			return null;
 		} else {
 			try {
