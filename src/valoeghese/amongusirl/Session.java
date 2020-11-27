@@ -94,6 +94,7 @@ public class Session {
 	private int taskCount = 0;
 	private final int impostors;
 	private Sabotage currentSabotage = null;
+	private long nextSabotageAllowed = 0;
 
 	// Interface
 
@@ -189,18 +190,26 @@ public class Session {
 
 	public void acceptReaction(User user, String reaction) {
 		if (reaction.equals("RE:U+30U+fe0fU+20e3")) {
-			final Sabotage sabotage = new Sabotage(Sabotage.Type.OXYGEN);
-			this.currentSabotage = sabotage;
-			this.broadcast("**SABOTAGE!** The __oxygen__ has been sabotaged.\nEmergency Task: [O2] Fix O2. You have 30 seconds.");
+			long now = System.currentTimeMillis();
+			
+			if (this.currentSabotage.fixed && now >= this.nextSabotageAllowed) {
+				final Sabotage sabotage = new Sabotage(Sabotage.Type.OXYGEN);
+				this.currentSabotage = sabotage;
+				this.broadcast("**SABOTAGE!** The __oxygen__ has been sabotaged.\nEmergency Task: [O2] Fix O2. You have 30 seconds.");
 
-			DelayedTask oxygenEndEvent = new DelayedTask(System.currentTimeMillis() + 30 * 1000, () -> {
-				if (this.currentSabotage == sabotage && !this.currentSabotage.fixed) {
-					this.win("Impostors win: Oxygen Depleted!");
+				DelayedTask oxygenEndEvent = new DelayedTask(System.currentTimeMillis() + 30 * 1000, () -> {
+					if (this.currentSabotage == sabotage && !this.currentSabotage.fixed) {
+						this.win("Impostors win: Oxygen Depleted!");
+					}
+				});
+
+				synchronized (AmongUsIRL.delayedTasks) {
+					AmongUsIRL.delayedTasks.add(oxygenEndEvent);
 				}
-			});
-
-			synchronized (AmongUsIRL.delayedTasks) {
-				AmongUsIRL.delayedTasks.add(oxygenEndEvent);
+			} else if (this.currentSabotage.fixed) {
+				this.message(user, "Cannot sabotage when you are still on cooldown! Time remaining: " + ((this.nextSabotageAllowed - now) / 1000) + " seconds.");
+			} else {
+				this.message(user, "Cannot sabotage during an ongoing sabotage!").queue();
 			}
 		}
 	}
@@ -342,7 +351,7 @@ public class Session {
 				} else {
 					break; // why are you not fixing oxygen
 				}
-				
+
 				if (this.currentSabotage.data == 0b11) {
 					this.currentSabotage.fixed = true;
 					this.broadcast("Sabotage fixed!");
@@ -352,7 +361,7 @@ public class Session {
 				}
 			}
 		}
-		
+
 		return "This emergency task does not need to be performed.";
 	}
 
