@@ -123,6 +123,12 @@ public class Session {
 		// common tasks are distributed commonly
 		this.delegateTasks(commonDistributedTasks, commonTasks, this.commonTaskIndex, this.commonTaskList);
 
+		StringBuilder sabotagePrompt = new StringBuilder("Sabotages:");
+		
+		if (AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
+			sabotagePrompt.append(":zero: - Start an oxygen crisis (cooldown: 2 minutes)");
+		}
+
 		// Give sub roles and delegate tasks
 		for (User user : this.users) {
 			String role = "missingno";
@@ -163,7 +169,7 @@ public class Session {
 
 			if (impostor) {
 				this.message(user, "Fake Tasks:" + sb.toString()).queue();
-				this.sabotagePrompts.add(this.message(user, "Sabotages:\n:zero: - Start an oxygen crisis (delay: 2 minutes)").complete());
+				this.sabotagePrompts.add(this.message(user, sabotagePrompt.toString()).complete());
 			} else {
 				this.message(user, "Tasks:" + sb.toString()).queue();
 				this.taskCount += (commonTasks + longTasks + shortTasks);
