@@ -168,7 +168,7 @@ public class Session {
 				this.taskCount += (commonTasks + longTasks + shortTasks);
 			}
 		}
-		
+
 		for (Message message : this.sabotagePrompts) {
 			message.addReaction("\u0030\uFE0F\u20E3").queue();
 		}
@@ -192,7 +192,7 @@ public class Session {
 			final Sabotage sabotage = new Sabotage(Sabotage.Type.OXYGEN);
 			this.currentSabotage = sabotage;
 			this.broadcast("**SABOTAGE!** The __oxygen__ has been sabotaged.\nEmergency Task: [O2] Fix O2. You have 30 seconds.");
-			
+
 			DelayedTask oxygenEndEvent = new DelayedTask(System.currentTimeMillis() + 30 * 1000, () -> {
 				if (this.currentSabotage == sabotage && !this.currentSabotage.fixed) {
 					this.win("Impostors win: Oxygen Depleted!");
@@ -226,6 +226,10 @@ public class Session {
 					return "Outdated code!";
 				}
 
+				if (tsk.task.type == Task.Type.EMERGENCY) {
+					return this.handleEmergency(tsk.task, tsk.room);
+				}
+
 				// reboot wifi 2 treated as reboot wifi outside of code
 				ConfiguredTask t = new ConfiguredTask(tsk.task == Task.REBOOT_WIFI_2 ? Task.REBOOT_WIFI : tsk.task, tsk.room);
 
@@ -256,7 +260,7 @@ public class Session {
 
 						tasks.get(user).remove(t);
 						this.tasksComplete++;
-						
+
 						if (this.tasks.isEmpty()) {
 							if (this.tasksComplete == this.taskCount) {
 								this.win("Crewmates win: All Tasks Completed!");
@@ -325,6 +329,31 @@ public class Session {
 		} else {
 			return null;
 		}
+	}
+
+	private String handleEmergency(Task task, Room room) {
+		if (this.currentSabotage != null) {
+			switch (this.currentSabotage.type) {
+			case OXYGEN:
+				if (task == Task.O2_1) {
+					this.currentSabotage.data |= 0b01;
+				} else if (task == Task.O2_2) {
+					this.currentSabotage.data |= 0b10;
+				} else {
+					break; // why are you not fixing oxygen
+				}
+				
+				if (this.currentSabotage.data == 0b11) {
+					this.currentSabotage.fixed = true;
+					this.broadcast("Sabotage fixed!");
+					return null;
+				} else {
+					return "Completed Oxygen Sabotage: 1/2";
+				}
+			}
+		}
+		
+		return "This emergency task does not need to be performed.";
 	}
 
 	private void win(String string) {

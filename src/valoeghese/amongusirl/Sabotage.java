@@ -6,6 +6,7 @@ public class Sabotage {
 	}
 
 	boolean fixed = false;
+	int data = 0;
 	final Type type;
 
 	public enum Type {
