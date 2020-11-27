@@ -164,6 +164,8 @@ public class AmongUsIRL extends ListenerAdapter {
 				.addDataEntry("EngineRoom1", Room.OUTSIDE.name)
 				.addDataEntry("EngineRoom2", Room.OUTSIDE.name)
 				.addDataEntry("GarbageRoom", Room.STORAGE.name)
+				.addContainer("Sabotages", c -> c
+						.addDataEntry("O2", true))
 				.build());
 
 		config.writeToFile(file);

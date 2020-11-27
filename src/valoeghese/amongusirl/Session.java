@@ -189,7 +189,7 @@ public class Session {
 	}
 
 	public void acceptReaction(User user, String reaction) {
-		if (reaction.equals("RE:U+30U+fe0fU+20e3")) {
+		if (reaction.equals("RE:U+30U+fe0fU+20e3") && AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
 			long now = System.currentTimeMillis();
 			
 			if (this.currentSabotage.fixed && now >= this.nextSabotageAllowed) {
