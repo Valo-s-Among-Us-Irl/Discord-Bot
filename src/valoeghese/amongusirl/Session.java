@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import tk.valoeghese.zoesteriaconfig.api.ZoesteriaConfig;
@@ -86,6 +87,7 @@ public class Session {
 	private final List<String> crewWeightedRoles = new ArrayList<>();
 	private final List<String> crewCappedRoles = new ArrayList<>();
 	private final Supplier<String> crewWeighted;
+	private final List<Message> sabotagePrompts = new ArrayList<>();
 
 	private boolean started = false;
 	private int tasksComplete = 0;
@@ -159,10 +161,15 @@ public class Session {
 
 			if (impostor) {
 				this.message(user, "Fake Tasks:" + sb.toString()).queue();
+				this.sabotagePrompts.add(this.message(user, "Sabotages:\n:zero: - Start an oxygen crisis (delay: 30 seconds)").complete());
 			} else {
 				this.message(user, "Tasks:" + sb.toString()).queue();
 				this.taskCount += (commonTasks + longTasks + shortTasks);
 			}
+		}
+		
+		for (Message message : this.sabotagePrompts) {
+			message.addReaction("\u0030\uFE0F\u20E3").queue();
 		}
 	}
 
