@@ -132,10 +132,10 @@ public class Session {
 
 		StringBuilder sabotagePrompt = new StringBuilder("Abilities:");
 
-		sabotagePrompt.append(":dagger: - Kill someone (cooldown: 15 seconds)");
+		sabotagePrompt.append("\n:dagger: - Kill someone (cooldown: 15 seconds)");
 
 		if (o2Sab) {
-			sabotagePrompt.append(":zero: - Start an oxygen crisis (cooldown: 2 minutes)");
+			sabotagePrompt.append("\n:zero: - Start an oxygen crisis (cooldown: 2 minutes)");
 		}
 
 		long now = System.currentTimeMillis();
@@ -220,6 +220,14 @@ public class Session {
 				if (target <= now) {
 					this.killCooldowns.put(user, now + 1000 * 15);
 					this.message(user, "Successfully killed! Kill cooldown: 15 seconds.").queue();
+
+					DelayedTask cooldownResetEvent = new DelayedTask(now + 15 * 1000, () -> {
+						this.message(user, "Cooldown reset.").queue();
+					});
+
+					synchronized (AmongUsIRL.delayedTasks) {
+						AmongUsIRL.delayedTasks.add(cooldownResetEvent);
+					}
 				} else {
 					this.message(user, "Kill cooldown still going! Time remaining: " + ((target - now) / 1000) + " seconds.").queue();
 				}
@@ -229,7 +237,7 @@ public class Session {
 					this.currentSabotage = sabotage;
 					this.broadcast("**SABOTAGE!** The __oxygen__ has been sabotaged.\nEmergency Task: [O2] Fix O2. You have 30 seconds.");
 
-					DelayedTask oxygenEndEvent = new DelayedTask(System.currentTimeMillis() + 30 * 1000, () -> {
+					DelayedTask oxygenEndEvent = new DelayedTask(now + 30 * 1000, () -> {
 						if (this.currentSabotage == sabotage && !this.currentSabotage.fixed) {
 							this.win("Impostors win: Oxygen Depleted!");
 						}
