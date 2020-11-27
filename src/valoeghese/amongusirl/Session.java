@@ -179,10 +179,12 @@ public class Session {
 		}
 	}
 
+	public void acceptReaction(User user, String reaction) {
+		System.out.println(reaction);
+	}
+
 	public String acceptMessage(User user, String message) {
-		if (isImpostor.getBoolean(user)) {
-			return null;
-		} else {
+		if (!isImpostor.getBoolean(user)) {
 			try {
 				int code = Integer.parseInt(message);
 				final ConfiguredTask tsk = new ConfiguredTask(Util.getTask(code), Util.getRoom(code));
@@ -232,17 +234,25 @@ public class Session {
 
 						tasks.get(user).remove(t);
 						this.tasksComplete++;
-						// TODO win condition: tasks
+						
+						if (this.tasks.isEmpty()) {
+							if (this.tasksComplete == this.taskCount) {
+								this.broadcast("Crewmates win: All Tasks Completed!");
+								return null;
+							} else {
+								return "Completed Task! No remaining tasks.";
+							}
+						} else {
+							StringBuilder sb = new StringBuilder("Completed Task! Remaining Tasks:");
 
-						StringBuilder sb = new StringBuilder("Completed Task! Remaining Tasks:");
+							List<ConfiguredTask> userTasks = this.tasks.get(user);
 
-						List<ConfiguredTask> userTasks = this.tasks.get(user);
+							for (ConfiguredTask usertask : userTasks) {
+								sb.append('\n').append(usertask.toString());
+							}
 
-						for (ConfiguredTask usertask : userTasks) {
-							sb.append('\n').append(usertask.toString());
+							return sb.toString();
 						}
-
-						return sb.toString();
 					} else {
 						if (ct.task == Task.TRANSFER_DATA) {
 							ct.room = AmongUsIRL.uploadRoom;
@@ -290,6 +300,8 @@ public class Session {
 			} catch (NumberFormatException e) {
 				return null;
 			}
+		} else {
+			return null;
 		}
 	}
 

@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import tk.valoeghese.zoesteriaconfig.api.ZoesteriaConfig;
 import tk.valoeghese.zoesteriaconfig.api.container.WritableConfig;
@@ -32,6 +33,17 @@ public class AmongUsIRL extends ListenerAdapter {
 				if (result != null) {
 					event.getChannel().sendMessage(result).queue();
 				}
+			}
+		}
+	}
+
+	@Override
+	public void onPrivateMessageReactionAdd(PrivateMessageReactionAddEvent event) {
+		User user = event.getUser();
+
+		if (session != null) {
+			if (session.hasUser(user) && session.hasStarted()) {
+				session.acceptReaction(user, event.getReactionEmote().toString());
 			}
 		}
 	}
@@ -169,7 +181,7 @@ public class AmongUsIRL extends ListenerAdapter {
 				}
 
 				nextExec = thisExec + 500;
-				
+
 				synchronized (delayedTasks) {
 					for (DelayedTask task : delayedTasks) {
 						if (task.target > thisExec) { // this works because tasks are ordered by their target time to execute
