@@ -152,6 +152,7 @@ public class AmongUsIRL extends ListenerAdapter {
 							l.add(Task.SWIPE_CARD.name);
 						})
 						.addList(Room.CAFETERIA.name, l -> {
+							l.add(Task.TRANSFER_DATA.name);
 							l.add(Task.EMPTY_GARBAGE.name);
 						})
 						.addList(Room.SHIELDS.name, l -> {

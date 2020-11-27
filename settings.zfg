@@ -40,7 +40,6 @@ EnabledTasks = {
   storage = [
     transfer_data;
     fuel_engines;
-    empty_garbage;
   ]
   hallway = [
     transfer_data;
