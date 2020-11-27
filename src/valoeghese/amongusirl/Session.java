@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import net.dv8tion.jda.api.entities.Message;
@@ -87,7 +89,7 @@ public class Session {
 	private final List<String> crewWeightedRoles = new ArrayList<>();
 	private final List<String> crewCappedRoles = new ArrayList<>();
 	private final Supplier<String> crewWeighted;
-	private final List<Message> sabotagePrompts = new ArrayList<>();
+	private final LongList sabotagePrompts = new LongArrayList();
 
 	private boolean started = false;
 	private int tasksComplete = 0;
@@ -124,7 +126,7 @@ public class Session {
 		this.delegateTasks(commonDistributedTasks, commonTasks, this.commonTaskIndex, this.commonTaskList);
 
 		StringBuilder sabotagePrompt = new StringBuilder("Sabotages:");
-		
+
 		if (AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
 			sabotagePrompt.append(":zero: - Start an oxygen crisis (cooldown: 2 minutes)");
 		}
@@ -169,15 +171,13 @@ public class Session {
 
 			if (impostor) {
 				this.message(user, "Fake Tasks:" + sb.toString()).queue();
-				this.sabotagePrompts.add(this.message(user, sabotagePrompt.toString()).complete());
+				Message msg = this.message(user, sabotagePrompt.toString()).complete();
+				msg.addReaction("\u0030\uFE0F\u20E3").queue();
+				this.sabotagePrompts.add(msg.getIdLong());
 			} else {
 				this.message(user, "Tasks:" + sb.toString()).queue();
 				this.taskCount += (commonTasks + longTasks + shortTasks);
 			}
-		}
-
-		for (Message message : this.sabotagePrompts) {
-			message.addReaction("\u0030\uFE0F\u20E3").queue();
 		}
 	}
 
@@ -194,28 +194,30 @@ public class Session {
 		}
 	}
 
-	public void acceptReaction(User user, String reaction) {
-		if (reaction.equals("RE:U+30U+fe0fU+20e3") && AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
-			long now = System.currentTimeMillis();
-			
-			if (this.currentSabotage.fixed && now >= this.nextSabotageAllowed) {
-				final Sabotage sabotage = new Sabotage(Sabotage.Type.OXYGEN);
-				this.currentSabotage = sabotage;
-				this.broadcast("**SABOTAGE!** The __oxygen__ has been sabotaged.\nEmergency Task: [O2] Fix O2. You have 30 seconds.");
+	public void acceptReaction(long message, User user, String reaction) {
+		if (this.sabotagePrompts.contains(message)) {
+			if (reaction.equals("RE:U+30U+fe0fU+20e3") && AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
+				long now = System.currentTimeMillis();
 
-				DelayedTask oxygenEndEvent = new DelayedTask(System.currentTimeMillis() + 30 * 1000, () -> {
-					if (this.currentSabotage == sabotage && !this.currentSabotage.fixed) {
-						this.win("Impostors win: Oxygen Depleted!");
+				if (this.currentSabotage.fixed && now >= this.nextSabotageAllowed) {
+					final Sabotage sabotage = new Sabotage(Sabotage.Type.OXYGEN);
+					this.currentSabotage = sabotage;
+					this.broadcast("**SABOTAGE!** The __oxygen__ has been sabotaged.\nEmergency Task: [O2] Fix O2. You have 30 seconds.");
+
+					DelayedTask oxygenEndEvent = new DelayedTask(System.currentTimeMillis() + 30 * 1000, () -> {
+						if (this.currentSabotage == sabotage && !this.currentSabotage.fixed) {
+							this.win("Impostors win: Oxygen Depleted!");
+						}
+					});
+
+					synchronized (AmongUsIRL.delayedTasks) {
+						AmongUsIRL.delayedTasks.add(oxygenEndEvent);
 					}
-				});
-
-				synchronized (AmongUsIRL.delayedTasks) {
-					AmongUsIRL.delayedTasks.add(oxygenEndEvent);
+				} else if (this.currentSabotage.fixed) {
+					this.message(user, "Cannot sabotage when you are still on cooldown! Time remaining: " + ((this.nextSabotageAllowed - now) / 1000) + " seconds.");
+				} else {
+					this.message(user, "Cannot sabotage during an ongoing sabotage!").queue();
 				}
-			} else if (this.currentSabotage.fixed) {
-				this.message(user, "Cannot sabotage when you are still on cooldown! Time remaining: " + ((this.nextSabotageAllowed - now) / 1000) + " seconds.");
-			} else {
-				this.message(user, "Cannot sabotage during an ongoing sabotage!").queue();
 			}
 		}
 	}

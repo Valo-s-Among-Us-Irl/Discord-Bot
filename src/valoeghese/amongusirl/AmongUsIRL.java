@@ -43,7 +43,7 @@ public class AmongUsIRL extends ListenerAdapter {
 
 		if (session != null) {	
 			if (session.hasUser(user) && session.hasStarted()) {
-				session.acceptReaction(user, event.getReactionEmote().toString());
+				session.acceptReaction(event.getMessageIdLong(), user, event.getReactionEmote().toString());
 			}
 		}
 	}
