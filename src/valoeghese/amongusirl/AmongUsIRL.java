@@ -3,6 +3,7 @@ package valoeghese.amongusirl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Properties;
@@ -187,18 +188,26 @@ public class AmongUsIRL extends ListenerAdapter {
 				nextExec = thisExec + 500;
 
 				synchronized (delayedTasks) {
+					List<DelayedTask> toRemove = new ArrayList<>();
+
 					for (DelayedTask task : delayedTasks) {
 						if (task.target > thisExec) { // this works because tasks are ordered by their target time to execute
 							break; // therefore if the target is greater than thisExec, it applies to all subsequent tasks.
 						}
 
 						task.runnable.run();
+						toRemove.add(task);
+					}
+
+					for (DelayedTask task : toRemove) {
+						delayedTasks.remove(task);
 					}
 				}
 			}
 		});
 
 		delayedTaskWorker.setDaemon(true);
+		delayedTaskWorker.start();
 
 		// bootstrap JDA
 		try (FileInputStream fis = new FileInputStream(new File("./properties.txt"))) {
