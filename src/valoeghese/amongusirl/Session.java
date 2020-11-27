@@ -13,6 +13,8 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+import it.unimi.dsi.fastutil.objects.Object2LongArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
@@ -90,6 +92,7 @@ public class Session {
 	private final List<String> crewCappedRoles = new ArrayList<>();
 	private final Supplier<String> crewWeighted;
 	private final LongList sabotagePrompts = new LongArrayList();
+	private final Object2LongMap<User> killCooldowns = new Object2LongArrayMap<>();
 
 	private boolean started = false;
 	private int tasksComplete = 0;
@@ -125,11 +128,17 @@ public class Session {
 		// common tasks are distributed commonly
 		this.delegateTasks(commonDistributedTasks, commonTasks, this.commonTaskIndex, this.commonTaskList);
 
-		StringBuilder sabotagePrompt = new StringBuilder("Sabotages:");
+		boolean o2Sab = AmongUsIRL.config.getBooleanValue("Sabotages.O2");
 
-		if (AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
+		StringBuilder sabotagePrompt = new StringBuilder("Abilities:");
+
+		sabotagePrompt.append(":dagger: - Kill someone (cooldown: 15 seconds)");
+
+		if (o2Sab) {
 			sabotagePrompt.append(":zero: - Start an oxygen crisis (cooldown: 2 minutes)");
 		}
+
+		long now = System.currentTimeMillis();
 
 		// Give sub roles and delegate tasks
 		for (User user : this.users) {
@@ -172,7 +181,14 @@ public class Session {
 			if (impostor) {
 				this.message(user, "Fake Tasks:" + sb.toString()).queue();
 				Message msg = this.message(user, sabotagePrompt.toString()).complete();
-				msg.addReaction("\u0030\uFE0F\u20E3").queue();
+
+				msg.addReaction("\uD83D\uDDE1").queue();
+
+				if (o2Sab) {
+					msg.addReaction("\u0030\uFE0F\u20E3").queue();
+				}
+
+				this.killCooldowns.put(user, now + 1000 * 15);
 				this.sabotagePrompts.add(msg.getIdLong());
 			} else {
 				this.message(user, "Tasks:" + sb.toString()).queue();
@@ -195,10 +211,19 @@ public class Session {
 	}
 
 	public void acceptReaction(long message, User user, String reaction) {
-		if (this.sabotagePrompts.contains(message)) {
-			if (reaction.equals("RE:U+30U+fe0fU+20e3") && AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
-				long now = System.currentTimeMillis();
+		if (this.sabotagePrompts.contains(message)) {// don't check for impostor cuz only they have messages in the sabotagePrompts list
+			long now = System.currentTimeMillis();
 
+			if (reaction.equals("RE:U+1f5e1U+fe0f")) {
+				long target = this.killCooldowns.getLong(user);
+
+				if (target <= now) {
+					this.killCooldowns.put(user, now + 1000 * 15);
+					this.message(user, "Successfully killed! Kill cooldown: 15 seconds.").queue();
+				} else {
+					this.message(user, "Kill cooldown still going! Time remaining: " + ((target - now) / 1000) + " seconds.");
+				}
+			} else if (reaction.equals("RE:U+30U+fe0fU+20e3") && AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
 				if (this.currentSabotage.fixed && now >= this.nextSabotageAllowed) {
 					final Sabotage sabotage = new Sabotage(Sabotage.Type.OXYGEN);
 					this.currentSabotage = sabotage;
