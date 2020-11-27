@@ -93,6 +93,7 @@ public class Session {
 	private int tasksComplete = 0;
 	private int taskCount = 0;
 	private final int impostors;
+	private Sabotage currentSabotage = null;
 
 	// Interface
 
@@ -161,7 +162,7 @@ public class Session {
 
 			if (impostor) {
 				this.message(user, "Fake Tasks:" + sb.toString()).queue();
-				this.sabotagePrompts.add(this.message(user, "Sabotages:\n:zero: - Start an oxygen crisis (delay: 30 seconds)").complete());
+				this.sabotagePrompts.add(this.message(user, "Sabotages:\n:zero: - Start an oxygen crisis (delay: 2 minutes)").complete());
 			} else {
 				this.message(user, "Tasks:" + sb.toString()).queue();
 				this.taskCount += (commonTasks + longTasks + shortTasks);
@@ -187,7 +188,21 @@ public class Session {
 	}
 
 	public void acceptReaction(User user, String reaction) {
-		System.out.println(reaction);
+		if (reaction.equals("RE:U+30U+fe0fU+20e3")) {
+			final Sabotage sabotage = new Sabotage(Sabotage.Type.OXYGEN);
+			this.currentSabotage = sabotage;
+			this.broadcast("**SABOTAGE!** The __oxygen__ has been sabotaged.\nEmergency Task: [O2] Fix O2. You have 30 seconds.");
+			
+			DelayedTask oxygenEndEvent = new DelayedTask(System.currentTimeMillis() + 30 * 1000, () -> {
+				if (this.currentSabotage == sabotage && !this.currentSabotage.fixed) {
+					this.win("Impostors win: Oxygen Depleted!");
+				}
+			});
+
+			synchronized (AmongUsIRL.delayedTasks) {
+				AmongUsIRL.delayedTasks.add(oxygenEndEvent);
+			}
+		}
 	}
 
 	public String acceptMessage(User user, String message) {
@@ -244,7 +259,7 @@ public class Session {
 						
 						if (this.tasks.isEmpty()) {
 							if (this.tasksComplete == this.taskCount) {
-								this.broadcast("Crewmates win: All Tasks Completed!");
+								this.win("Crewmates win: All Tasks Completed!");
 								return null;
 							} else {
 								return "Completed Task! No remaining tasks.";
@@ -310,6 +325,11 @@ public class Session {
 		} else {
 			return null;
 		}
+	}
+
+	private void win(String string) {
+		this.broadcast(string);
+		AmongUsIRL.session = null;
 	}
 
 	public boolean joinUser(User user) {

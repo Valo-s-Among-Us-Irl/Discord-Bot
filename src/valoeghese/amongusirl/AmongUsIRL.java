@@ -41,7 +41,7 @@ public class AmongUsIRL extends ListenerAdapter {
 	public void onPrivateMessageReactionAdd(PrivateMessageReactionAddEvent event) {
 		User user = event.getUser();
 
-		if (session != null) {
+		if (session != null) {	
 			if (session.hasUser(user) && session.hasStarted()) {
 				session.acceptReaction(user, event.getReactionEmote().toString());
 			}
@@ -52,7 +52,9 @@ public class AmongUsIRL extends ListenerAdapter {
 	public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
 		if (event.getMessageId().equals(sessionMsg)) {
 			if (event.getReactionEmote().toString().equals("RE:U+1f50e")) {
-				session.joinUser(event.getUser());
+				if (session != null) {
+					session.joinUser(event.getUser());
+				}
 			}
 		}
 	}
