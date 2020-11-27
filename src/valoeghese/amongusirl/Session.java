@@ -214,17 +214,17 @@ public class Session {
 		if (this.sabotagePrompts.contains(message)) {// don't check for impostor cuz only they have messages in the sabotagePrompts list
 			long now = System.currentTimeMillis();
 
-			if (reaction.equals("RE:U+1f5e1U+fe0f")) {
+			if (reaction.equals("RE:U+1f5e1")) {
 				long target = this.killCooldowns.getLong(user);
 
 				if (target <= now) {
 					this.killCooldowns.put(user, now + 1000 * 15);
 					this.message(user, "Successfully killed! Kill cooldown: 15 seconds.").queue();
 				} else {
-					this.message(user, "Kill cooldown still going! Time remaining: " + ((target - now) / 1000) + " seconds.");
+					this.message(user, "Kill cooldown still going! Time remaining: " + ((target - now) / 1000) + " seconds.").queue();
 				}
 			} else if (reaction.equals("RE:U+30U+fe0fU+20e3") && AmongUsIRL.config.getBooleanValue("Sabotages.O2")) {
-				if (this.currentSabotage.fixed && now >= this.nextSabotageAllowed) {
+				if (this.currentSabotage == null || (this.currentSabotage.fixed && now >= this.nextSabotageAllowed)) {
 					final Sabotage sabotage = new Sabotage(Sabotage.Type.OXYGEN);
 					this.currentSabotage = sabotage;
 					this.broadcast("**SABOTAGE!** The __oxygen__ has been sabotaged.\nEmergency Task: [O2] Fix O2. You have 30 seconds.");
