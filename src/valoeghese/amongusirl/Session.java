@@ -139,6 +139,7 @@ public class Session {
 		}
 
 		long now = System.currentTimeMillis();
+		List<String> impostorNames = new ArrayList<>();
 
 		// Give sub roles and delegate tasks
 		for (User user : this.users) {
@@ -146,6 +147,7 @@ public class Session {
 			boolean impostor = this.isImpostor.getBoolean(user);
 
 			if (impostor) {
+				impostorNames.add(user.getName());
 				if (!this.impostorCappedRoles.isEmpty()) {
 					role = this.impostorCappedRoles.remove(0);
 				} else {
@@ -193,6 +195,26 @@ public class Session {
 			} else {
 				this.message(user, "Tasks:" + sb.toString()).queue();
 				this.taskCount += (commonTasks + longTasks + shortTasks);
+			}
+		}
+
+		// send impostor names
+		StringBuilder impostorNameSB = new StringBuilder("Other Impostors: ");
+
+		boolean b = false;
+
+		for (String s : impostorNames) {
+			if (b) {
+				impostorNameSB.append(", ");
+			}
+
+			impostorNameSB.append(s);
+			b = true;
+		}
+
+		for (User user : this.users) {
+			if (this.isImpostor.getBoolean(user)) {
+				this.message(user, impostorNameSB.toString());
 			}
 		}
 	}
@@ -247,7 +269,7 @@ public class Session {
 						AmongUsIRL.delayedTasks.add(oxygenEndEvent);
 					}
 				} else if (this.currentSabotage.fixed) {
-					this.message(user, "Cannot sabotage when you are still on cooldown! Time remaining: " + ((this.nextSabotageAllowed - now) / 1000) + " seconds.");
+					this.message(user, "Cannot sabotage when you are still on cooldown! Time remaining: " + ((this.nextSabotageAllowed - now) / 1000) + " seconds.").queue();
 				} else {
 					this.message(user, "Cannot sabotage during an ongoing sabotage!").queue();
 				}
@@ -311,7 +333,7 @@ public class Session {
 							}
 						}
 
-						tasks.get(user).remove(t);
+						tasks.get(user).remove(ct);
 						this.tasksComplete++;
 
 						if (this.tasks.isEmpty()) {

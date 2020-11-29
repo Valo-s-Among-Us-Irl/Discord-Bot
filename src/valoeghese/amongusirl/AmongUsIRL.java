@@ -175,7 +175,7 @@ public class AmongUsIRL extends ListenerAdapter {
 		uploadRoom = Room.ROOM_BY_NAME.get(config.getStringValue("UploadRoom"));
 		engineRoom1 = Room.ROOM_BY_NAME.get(config.getStringValue("EngineRoom1"));
 		engineRoom2 = Room.ROOM_BY_NAME.get(config.getStringValue("EngineRoom2"));
-		garbageRoom = Room.ROOM_BY_NAME.get(config.getStringValue("EngineRoom2"));
+		garbageRoom = Room.ROOM_BY_NAME.get(config.getStringValue("GarbageRoom"));
 
 		delayedTaskWorker = new Thread(() -> {
 			long nextExec = System.currentTimeMillis() + 500;

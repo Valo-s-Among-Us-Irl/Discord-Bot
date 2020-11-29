@@ -52,7 +52,7 @@ EnabledTasks = {
     swipe_card;
   ]
   cafeteria = [
-	transfer_data;
+    transfer_data;
     empty_garbage;
   ]
   shields = [
