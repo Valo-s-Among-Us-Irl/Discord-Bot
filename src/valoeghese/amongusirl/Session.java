@@ -256,7 +256,10 @@ public class Session {
 	}
 
 	public String acceptMessage(User user, String message) {
-		if (!isImpostor.getBoolean(user)) {
+		if (message.toUpperCase().equals("MEETING")) {
+			this.broadcast("A meeting has been called! Tasks Completed: " + this.getTaskProgress() + "%");
+			return null;
+		} else if (!isImpostor.getBoolean(user)) {
 			try {
 				int code = Integer.parseInt(message);
 				final ConfiguredTask tsk = new ConfiguredTask(Util.getTask(code), Util.getRoom(code));
