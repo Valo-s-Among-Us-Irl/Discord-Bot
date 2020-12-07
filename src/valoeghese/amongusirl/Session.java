@@ -81,9 +81,11 @@ public class Session {
 	private final Map<Task, List<ConfiguredTask>> shortTaskIndex = new HashMap<>();
 	private final List<Task> shortTaskList = new ArrayList<>();
 
+	// user data
 	private List<User> users = new ArrayList<>();
 	private Object2BooleanMap<User> isImpostor = new Object2BooleanArrayMap<>();
 	private Map<User, List<ConfiguredTask>> tasks = new LinkedHashMap<>();
+	private final Object2LongMap<User> killCooldowns = new Object2LongArrayMap<>();
 
 	private final List<String> impostorCappedRoles = new ArrayList<>();
 	private final List<String> impostorWeightedRoles = new ArrayList<>();
@@ -92,7 +94,6 @@ public class Session {
 	private final List<String> crewCappedRoles = new ArrayList<>();
 	private final Supplier<String> crewWeighted;
 	private final LongList sabotagePrompts = new LongArrayList();
-	private final Object2LongMap<User> killCooldowns = new Object2LongArrayMap<>();
 
 	private boolean started = false;
 	private int tasksComplete = 0;
@@ -105,6 +106,7 @@ public class Session {
 
 	public void start() {
 		this.started = true;
+		System.out.println("Session started with " + this.users.size() + " players.");
 
 		if (this.users.isEmpty()) {
 			return;
@@ -274,6 +276,8 @@ public class Session {
 					this.message(user, "Cannot sabotage during an ongoing sabotage!").queue();
 				}
 			}
+		} else {
+			System.out.println(message);
 		}
 	}
 
@@ -281,7 +285,7 @@ public class Session {
 		if (message.toUpperCase().equals("MEETING")) {
 			this.broadcast("A meeting has been called! Tasks Completed: " + this.getTaskProgress() + "%");
 			return null;
-		} else if (!isImpostor.getBoolean(user)) {
+		} else {
 			try {
 				int code = Integer.parseInt(message);
 				final ConfiguredTask tsk = new ConfiguredTask(Util.getTask(code), Util.getRoom(code));
@@ -303,6 +307,10 @@ public class Session {
 
 				if (tsk.task.type == Task.Type.EMERGENCY) {
 					return this.handleEmergency(tsk.task, tsk.room);
+				}
+				
+				if (isImpostor.getBoolean(user)) {
+					return null;
 				}
 
 				// reboot wifi 2 treated as reboot wifi outside of code
@@ -401,8 +409,6 @@ public class Session {
 			} catch (NumberFormatException e) {
 				return null;
 			}
-		} else {
-			return null;
 		}
 	}
 
@@ -453,6 +459,8 @@ public class Session {
 
 	public boolean hasUser(User user) {
 		return this.users.contains(user);
+//		long uidl = user.getIdLong();
+//		return this.users.stream().anyMatch(u -> u.getIdLong() == uidl);
 	}
 
 	// Get task progress as percentage
