@@ -459,8 +459,6 @@ public class Session {
 
 	public boolean hasUser(User user) {
 		return this.users.contains(user);
-//		long uidl = user.getIdLong();
-//		return this.users.stream().anyMatch(u -> u.getIdLong() == uidl);
 	}
 
 	// Get task progress as percentage

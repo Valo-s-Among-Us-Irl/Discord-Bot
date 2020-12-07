@@ -41,6 +41,8 @@ public class AmongUsIRL extends ListenerAdapter {
 	@Override
 	public void onPrivateMessageReactionAdd(PrivateMessageReactionAddEvent event) {
 		User user = event.getUser();
+		System.out.println("c" + event.getUserIdLong());
+		System.out.println(user);
 
 		if (session != null) {
 			if (session.hasUser(user) && session.hasStarted()) {
