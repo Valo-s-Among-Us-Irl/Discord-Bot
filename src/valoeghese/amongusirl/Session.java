@@ -282,8 +282,6 @@ public class Session {
 					this.message(user, "Cannot sabotage during an ongoing sabotage!").queue();
 				}
 			}
-		} else {
-			System.out.println(message);
 		}
 	}
 
