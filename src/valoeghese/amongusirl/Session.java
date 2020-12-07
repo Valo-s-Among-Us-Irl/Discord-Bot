@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
@@ -83,6 +85,8 @@ public class Session {
 
 	// user data
 	private List<User> users = new ArrayList<>();
+	private LongList userIds = new LongArrayList(); // fuck discord api
+	private Long2ObjectMap<User> id2User = new Long2ObjectArrayMap<>();
 	private Object2BooleanMap<User> isImpostor = new Object2BooleanArrayMap<>();
 	private Map<User, List<ConfiguredTask>> tasks = new LinkedHashMap<>();
 	private final Object2LongMap<User> killCooldowns = new Object2LongArrayMap<>();
@@ -234,7 +238,9 @@ public class Session {
 		}
 	}
 
-	public void acceptReaction(long message, User user, String reaction) {
+	public void acceptReaction(long message, long userLong, String reaction) {
+		User user = this.id2User.get(userLong);
+
 		if (this.sabotagePrompts.contains(message)) {// don't check for impostor cuz only they have messages in the sabotagePrompts list
 			long now = System.currentTimeMillis();
 
@@ -308,7 +314,7 @@ public class Session {
 				if (tsk.task.type == Task.Type.EMERGENCY) {
 					return this.handleEmergency(tsk.task, tsk.room);
 				}
-				
+
 				if (isImpostor.getBoolean(user)) {
 					return null;
 				}
@@ -447,9 +453,12 @@ public class Session {
 			return false;
 		} else {
 			this.users.add(user);
+			long userId = user.getIdLong();
+			this.userIds.add(userId);
+			this.id2User.put(userId, user);
 			return true;
 		}
-	} // alternatively the 2 liner "if (!this.started) addUser; return !started;"
+	}
 
 	// Getters
 
@@ -457,8 +466,8 @@ public class Session {
 		return this.started;
 	}
 
-	public boolean hasUser(User user) {
-		return this.users.contains(user);
+	public boolean hasUser(long user) {
+		return this.userIds.contains(user);
 	}
 
 	// Get task progress as percentage

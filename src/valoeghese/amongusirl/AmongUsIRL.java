@@ -28,7 +28,7 @@ public class AmongUsIRL extends ListenerAdapter {
 		User author = event.getAuthor();
 
 		if (session != null) {
-			if (session.hasUser(author) && session.hasStarted()) {
+			if (session.hasUser(author.getIdLong()) && session.hasStarted()) {
 				String result = session.acceptMessage(author, event.getMessage().getContentRaw());
 
 				if (result != null) {
@@ -40,9 +40,7 @@ public class AmongUsIRL extends ListenerAdapter {
 
 	@Override
 	public void onPrivateMessageReactionAdd(PrivateMessageReactionAddEvent event) {
-		User user = event.getUser();
-		System.out.println("c" + event.getUserIdLong());
-		System.out.println(user);
+		long user = event.getUserIdLong();
 
 		if (session != null) {
 			if (session.hasUser(user) && session.hasStarted()) {
